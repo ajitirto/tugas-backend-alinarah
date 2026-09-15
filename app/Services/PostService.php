@@ -5,9 +5,12 @@ namespace App\Services;
 use App\Repositories\PostRepository;
 use App\Models\Post;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Cache;
 
 class PostService
 {
+    private const TOP_TAGS_KEY = 'stats:heron:top-tags';
+    private const TOP_AUTHORS_KEY = 'stats:heron:top-authors';
     public function __construct(
         private PostRepository $postRepository
     ) {}
@@ -45,7 +48,7 @@ class PostService
 
     public function createPost(array $data): Post
     {
-        return $this->postRepository->create([
+        $post = $this->postRepository->create([
             'user_id' => $data['user_id'],
             'title' => $data['title'],
             'body' => $data['body'],
@@ -53,5 +56,10 @@ class PostService
             'views' => 0,
             'likes' => 0,
         ]);
+
+        Cache::forget(self::TOP_TAGS_KEY);
+        Cache::forget(self::TOP_AUTHORS_KEY);
+
+        return $post;
     }
 }
