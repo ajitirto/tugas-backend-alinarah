@@ -1,0 +1,123 @@
+### =========================================================
+### API Artikel - HTTPie Test
+### Base URL: http://localhost:8000
+###
+### =========================================================
+
+
+### ---------------------------------------------------------
+### 1. GET /api/posts
+### Daftar artikel dengan default pagination
+### page = 1
+### per_page = 10
+### ---------------------------------------------------------
+
+http GET :8000/api/posts
+
+
+### ---------------------------------------------------------
+### 2. GET /api/posts?page=2&per_page=20
+### Pagination
+### ---------------------------------------------------------
+
+http GET :8000/api/posts page==2 per_page==20
+
+
+### ---------------------------------------------------------
+### 3. GET /api/posts?per_page=100
+### Maksimal per_page = 100
+### ---------------------------------------------------------
+
+http GET :8000/api/posts per_page==100
+
+echo " 2 - task 1"
+
+### ---------------------------------------------------------
+### 4. GET /api/posts?tag=history
+### Filter artikel berdasarkan tag
+### ---------------------------------------------------------
+
+http GET :8000/api/posts tag==history
+
+
+### ---------------------------------------------------------
+### 5. GET /api/posts?tag=history&sort=-views
+### Filter berdasarkan tag
+### Sort views descending
+### ---------------------------------------------------------
+
+http GET :8000/api/posts tag==history sort==-views
+
+echo " 2 - task 2"
+
+### ---------------------------------------------------------
+### 6. GET /api/posts/{id}
+### Detail artikel
+### Expected: article + author + comments
+### ---------------------------------------------------------
+
+http GET :8000/api/posts/1
+
+
+### ---------------------------------------------------------
+### 7. GET /api/posts/{id}
+### Artikel tidak ditemukan
+###
+### ---------------------------------------------------------
+
+http GET :8000/api/posts/999999
+
+echo " 2 - task 3"
+
+### ---------------------------------------------------------
+### 8. GET /api/users/{id}/posts
+### Daftar artikel milik user
+### ---------------------------------------------------------
+
+http GET :8000/api/users/1/posts
+
+
+### ---------------------------------------------------------
+### 9. GET /api/users/{id}/posts
+### User dengan pagination
+### ---------------------------------------------------------
+
+http GET :8000/api/users/1/posts page==1 per_page==10
+
+
+### ---------------------------------------------------------
+### 10. GET /api/users/{id}/posts
+### User tidak ditemukan
+### Expected: 404
+### ---------------------------------------------------------
+
+http GET :8000/api/users/999999/posts
+
+
+echo " 2 - task 4"
+
+### ---------------------------------------------------------
+### 11. POST /api/posts
+### Membuat artikel baru
+### Masih error
+### ---------------------------------------------------------
+
+http POST :8000/api/posts \
+    title="Sejarah Indonesia" \
+    body="Artikel tentang sejarah Indonesia." \
+    user_id:=2 \
+    tags:='["history","indonesia"]'
+
+
+### ---------------------------------------------------------
+### 12. POST /api/posts
+### Validation error
+### title tidak dikirim
+### Expected: 422
+### ---------------------------------------------------------
+
+http POST :8000/api/posts \
+    body="Artikel tanpa title." \
+    user_id:=1
+
+echo " 2 - task 5"
