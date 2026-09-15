@@ -1,0 +1,57 @@
+<?php
+
+namespace App\Services;
+
+use App\Repositories\PostRepository;
+use App\Models\Post;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+
+class PostService
+{
+    public function __construct(
+        private PostRepository $postRepository
+    ) {}
+
+    public function getPosts(
+        int $page,
+        int $perPage,
+        ?string $tag = null,
+        ?string $sort = null
+    ): LengthAwarePaginator {
+        return $this->postRepository->getPosts(
+            $page,
+            $perPage,
+            $tag,
+            $sort
+        );
+    }
+
+    public function getPost(int $id): ?Post
+    {
+        return $this->postRepository->findById($id);
+    }
+
+    public function getUserPosts(
+        int $userId,
+        int $page,
+        int $perPage
+    ): LengthAwarePaginator {
+        return $this->postRepository->getPostsByUser(
+            $userId,
+            $page,
+            $perPage
+        );
+    }
+
+    public function createPost(array $data): Post
+    {
+        return $this->postRepository->create([
+            'user_id' => $data['user_id'],
+            'title' => $data['title'],
+            'body' => $data['body'],
+            'tags' => $data['tags'] ?? [],
+            'views' => 0,
+            'likes' => 0,
+        ]);
+    }
+}
