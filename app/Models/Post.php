@@ -11,8 +11,13 @@ class Post extends Model
         'user_id',
         'title',
         'body',
+        'tags',
         'views',
         'likes',
+    ];
+
+    protected $casts = [
+        'tags' => 'array',
     ];
 
     public function user()

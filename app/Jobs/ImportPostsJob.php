@@ -28,11 +28,12 @@ class ImportPostsJob implements ShouldQueue
         $now = now();
 
         $data = collect($this->posts)
-            ->map(fn ($post) => [
+            ->map(fn($post) => [
                 'id' => $post['id'],
                 'user_id' => $post['userId'],
                 'title' => $post['title'],
                 'body' => $post['body'],
+                'tags' => json_encode($post['tags'] ?? []),
                 'views' => $post['views'],
                 'likes' => $post['reactions']['likes'] ?? 0,
                 'created_at' => $now,
@@ -47,6 +48,7 @@ class ImportPostsJob implements ShouldQueue
                 'user_id',
                 'title',
                 'body',
+                'tags',
                 'views',
                 'likes',
                 'updated_at',
