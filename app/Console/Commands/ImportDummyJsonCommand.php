@@ -9,12 +9,18 @@ use App\Services\DummyJsonService;
 use Illuminate\Bus\Batch;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\DB;
+use Throwable;
 
 class ImportDummyJsonCommand extends Command
 {
     protected $signature = 'import:dummyjson';
 
     protected $description = 'Import users, posts, and comments from DummyJSON';
+
+    private const CHUNK_SIZE = 500;
+
+    private const PROGRESS_TIMEOUT = 60;
 
     public function handle(DummyJsonService $service): int
     {
@@ -24,9 +30,9 @@ class ImportDummyJsonCommand extends Command
         $posts = $service->getPosts();
         $comments = $service->getComments();
 
-        $this->info('Users: '.count($users));
-        $this->info('Posts: '.count($posts));
-        $this->info('Comments: '.count($comments));
+        $this->info('Users: ' . count($users));
+        $this->info('Posts: ' . count($posts));
+        $this->info('Comments: ' . count($comments));
 
         /*
          * ============================================================
@@ -36,19 +42,13 @@ class ImportDummyJsonCommand extends Command
         $this->newLine();
         $this->info('Importing users...');
 
-        $userJobs = [];
+        $userBatch = $this->dispatchBatch(
+            $users,
+            ImportUsersJob::class,
+            'DummyJSON - Import Users'
+        );
 
-        foreach (array_chunk($users, 500) as $chunk) {
-            $userJobs[] = new ImportUsersJob($chunk);
-        }
-
-        $userBatch = Bus::batch($userJobs)
-            ->name('DummyJSON - Import Users')
-            ->dispatch();
-
-        $this->info("Users Batch ID: {$userBatch->id}");
-
-        if (! $this->showProgress($userBatch)) {
+        if (! $userBatch || ! $this->showProgress($userBatch)) {
             return self::FAILURE;
         }
 
@@ -60,21 +60,22 @@ class ImportDummyJsonCommand extends Command
         $this->newLine();
         $this->info('Importing posts...');
 
-        $postJobs = [];
+        $postBatch = $this->dispatchBatch(
+            $posts,
+            ImportPostsJob::class,
+            'DummyJSON - Import Posts'
+        );
 
-        foreach (array_chunk($posts, 500) as $chunk) {
-            $postJobs[] = new ImportPostsJob($chunk);
-        }
-
-        $postBatch = Bus::batch($postJobs)
-            ->name('DummyJSON - Import Posts')
-            ->dispatch();
-
-        $this->info("Posts Batch ID: {$postBatch->id}");
-
-        if (! $this->showProgress($postBatch)) {
+        if (! $postBatch || ! $this->showProgress($postBatch)) {
             return self::FAILURE;
         }
+
+        /*
+         * ============================================================
+         * SYNC POST AUTO INCREMENT
+         * ============================================================
+         */
+        $this->syncPostSequence();
 
         /*
          * ============================================================
@@ -84,19 +85,13 @@ class ImportDummyJsonCommand extends Command
         $this->newLine();
         $this->info('Importing comments...');
 
-        $commentJobs = [];
+        $commentBatch = $this->dispatchBatch(
+            $comments,
+            ImportCommentsJob::class,
+            'DummyJSON - Import Comments'
+        );
 
-        foreach (array_chunk($comments, 500) as $chunk) {
-            $commentJobs[] = new ImportCommentsJob($chunk);
-        }
-
-        $commentBatch = Bus::batch($commentJobs)
-            ->name('DummyJSON - Import Comments')
-            ->dispatch();
-
-        $this->info("Comments Batch ID: {$commentBatch->id}");
-
-        if (! $this->showProgress($commentBatch)) {
+        if (! $commentBatch || ! $this->showProgress($commentBatch)) {
             return self::FAILURE;
         }
 
@@ -111,37 +106,113 @@ class ImportDummyJsonCommand extends Command
         return self::SUCCESS;
     }
 
+    /**
+     * Dispatch jobs dalam batch.
+     */
+    private function dispatchBatch(
+        array $data,
+        string $jobClass,
+        string $name
+    ): ?Batch {
+        if (empty($data)) {
+            $this->warn("No data available for {$name}.");
+
+            return null;
+        }
+
+        $jobs = [];
+
+        foreach (array_chunk($data, self::CHUNK_SIZE) as $chunk) {
+            $jobs[] = new $jobClass($chunk);
+        }
+
+        if (empty($jobs)) {
+            $this->error("No jobs created for {$name}.");
+
+            return null;
+        }
+
+        try {
+            $batch = Bus::batch($jobs)
+                ->name($name)
+                ->dispatch();
+
+            $this->info("Batch ID: {$batch->id}");
+
+            return $batch;
+        } catch (Throwable $e) {
+            $this->error('Failed to dispatch batch.');
+            $this->error($e->getMessage());
+
+            return null;
+        }
+    }
+
+    /**
+     * Menampilkan progress batch dengan timeout.
+     */
     private function showProgress(Batch $batch): bool
     {
-        while (true) {
-            $batch = Bus::findBatch($batch->id);
+        $startTime = time();
+        $lastProgress = -1;
 
-            if (! $batch) {
+        while (true) {
+            $currentBatch = Bus::findBatch($batch->id);
+
+            if (! $currentBatch) {
+                $this->newLine();
                 $this->error('Batch not found.');
 
                 return false;
             }
 
-            $progress = $batch->progress();
+            $progress = $currentBatch->progress();
 
-            $this->output->write(
-                "\rProgress: {$progress}%"
-            );
+            if ($progress !== $lastProgress) {
+                $this->output->write("\rProgress: {$progress}%");
 
-            /*
-             * Batch selesai
-             */
-            if ($batch->finished()) {
+                $lastProgress = $progress;
+            }
+
+            if ($currentBatch->failedJobs > 0) {
+                $this->newLine();
+
+                $this->error(
+                    "Batch has {$currentBatch->failedJobs} failed job(s)."
+                );
+
+                return false;
+            }
+
+            if ($currentBatch->finished()) {
                 break;
             }
 
-            /*
-             * Batch dibatalkan
-             */
-            if ($batch->cancelled()) {
+            if ($currentBatch->cancelled()) {
+                $this->newLine();
+                $this->error('Batch was cancelled.');
+
+                return false;
+            }
+
+            if ((time() - $startTime) >= self::PROGRESS_TIMEOUT) {
                 $this->newLine();
 
-                $this->error('Batch was cancelled.');
+                $this->error(
+                    'Batch progress timeout after '
+                    . self::PROGRESS_TIMEOUT
+                    . ' seconds.'
+                );
+
+                $this->error(
+                    "Batch ID: {$currentBatch->id}"
+                );
+
+                $this->warn(
+                    'Make sure the queue worker is running:'
+                );
+
+                $this->line('php artisan queue:work');
 
                 return false;
             }
@@ -150,20 +221,36 @@ class ImportDummyJsonCommand extends Command
         }
 
         $this->newLine();
-
-        /*
-         * Ada job yang gagal
-         */
-        if ($batch->failedJobs > 0) {
-            $this->error(
-                "Batch completed with {$batch->failedJobs} failed job(s)."
-            );
-
-            return false;
-        }
-
         $this->info('Batch completed successfully.');
 
         return true;
+    }
+
+    /**
+     * Sinkronisasi sequence PostgreSQL setelah import posts.
+     *
+     * Import menggunakan ID dari DummyJSON secara manual,
+     * sehingga sequence PostgreSQL perlu disesuaikan
+     * dengan ID terbesar yang sudah ada.
+     */
+    private function syncPostSequence(): void
+    {
+        $this->info('Synchronizing posts ID sequence...');
+
+        try {
+            DB::statement("
+                SELECT setval(
+                    pg_get_serial_sequence('posts', 'id'),
+                    COALESCE((SELECT MAX(id) FROM posts), 1)
+                )
+            ");
+
+            $this->info('Posts ID sequence synchronized.');
+        } catch (Throwable $e) {
+            $this->error('Failed to synchronize posts ID sequence.');
+            $this->error($e->getMessage());
+
+            throw $e;
+        }
     }
 }
