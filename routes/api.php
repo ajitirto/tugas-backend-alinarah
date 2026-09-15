@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\PostController;
+use App\Http\Controllers\Api\SearchController;
 use Illuminate\Support\Facades\Route;
 
 Route::controller(PostController::class)->group(function () {
@@ -14,4 +15,9 @@ Route::controller(PostController::class)->group(function () {
     });
 
     Route::get('/users/{id}/posts', 'userPosts');
+});
+
+Route::get('/search', SearchController::class);
+Route::get('/ping', function () {
+    return response()->json(['ok' => true]);
 });
