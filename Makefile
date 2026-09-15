@@ -1,4 +1,4 @@
-.PHONY: migrate-refresh import-dummyjson refresh-import
+.PHONY: migrate-refresh import-dummyjson multiply-post all
 
 migrate-refresh:
 	php artisan migrate:refresh
@@ -6,6 +6,7 @@ migrate-refresh:
 import-dummyjson:
 	php artisan import:dummyjson
 
-refresh-import:
-	php artisan migrate:refresh
-	php artisan import:dummyjson
+multiply-post:
+	php artisan posts:multiply 400
+
+all: migrate-refresh import-dummyjson multiply-post

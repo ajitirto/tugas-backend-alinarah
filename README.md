@@ -10,27 +10,19 @@ api-test.http
 
 ```
 
-### Import Data DummyJSON
+### Dokumentasi Database Index
 
-Untuk melakukan import data dari DummyJSON:
+Dokumentasi perbandingan performa query sebelum dan sesudah penambahan index tersedia di:
 
-```bash
+docs/before-index.md — hasil pengujian sebelum penambahan index.
+docs/after-index.md — hasil pengujian setelah penambahan index.
 
-php artisan import:dummyjson
-```
 
-Proses import menggunakan Laravel Queue Batch, sehingga queue worker harus dijalankan terlebih dahulu.
+Endpoint GET /api/posts?tag=history&sort=-views harus merespons di bawah 200 ms.
 
-Buka terminal baru dan jalankan:
 
 ```bash
+http GET :8000/api/posts tag==history sort==-views 
 
-php artisan queue:work
+0,15s user 0,04s system 50% cpu 0,386 total
 ```
-
-Kemudian pada terminal lainnya jalankan:
-
-```bash
-php artisan import:dummyjson
-```
-
