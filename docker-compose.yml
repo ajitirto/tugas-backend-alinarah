@@ -1,88 +1,99 @@
 services:
-  # app:
-  #   build:
-  #     context: .
-  #   container_name: app
-  #   restart: unless-stopped
-  #   working_dir: /var/www/html
-  #   ports:
-  #     - "8080:8000"
-  #   volumes:
-  #     - .:/var/www/html
-  #   depends_on:
-  #     db:
-  #       condition: service_healthy
-  #     redis:
-  #       condition: service_healthy
-  #   environment:
-  #     APP_ENV: local
-  #     APP_DEBUG: "true"
-  #     APP_URL: http://localhost:8080
-  #
-  #     DB_CONNECTION: pgsql
-  #     DB_HOST: db
-  #     DB_PORT: 5432
-  #     DB_DATABASE: laravel
-  #     DB_USERNAME: laravel
-  #     DB_PASSWORD: secret
-  #
-  #     REDIS_HOST: redis
-  #     REDIS_PORT: 6379
-  #
-  #     MAIL_MAILER: smtp
-  #     MAIL_HOST: mailpit
-  #     MAIL_PORT: 1025
-  #     MAIL_USERNAME: null
-  #     MAIL_PASSWORD: null
-  #     MAIL_ENCRYPTION: null
-  #     MAIL_FROM_ADDRESS: hello@example.com
-  #     MAIL_FROM_NAME: Laravel
-  #
-  #   command: >
-  #     sh -c "
-  #       php artisan migrate --force &&
-  #       php artisan serve --host=0.0.0.0 --port=8000
-  #     "
+    # app:
+    #   build:
+    #     context: .
+    #   container_name: app
+    #   restart: unless-stopped
+    #   working_dir: /var/www/html
+    #   ports:
+    #     - "8080:8000"
+    #   volumes:
+    #     - .:/var/www/html
+    #   depends_on:
+    #     db:
+    #       condition: service_healthy
+    #     redis:
+    #       condition: service_healthy
+    #   environment:
+    #     APP_ENV: local
+    #     APP_DEBUG: "true"
+    #     APP_URL: http://localhost:8080
+    #
+    #     DB_CONNECTION: pgsql
+    #     DB_HOST: db
+    #     DB_PORT: 5432
+    #     DB_DATABASE: laravel
+    #     DB_USERNAME: laravel
+    #     DB_PASSWORD: secret
+    #
+    #     REDIS_HOST: redis
+    #     REDIS_PORT: 6379
+    #
+    #     MAIL_MAILER: smtp
+    #     MAIL_HOST: mailpit
+    #     MAIL_PORT: 1025
+    #     MAIL_USERNAME: null
+    #     MAIL_PASSWORD: null
+    #     MAIL_ENCRYPTION: null
+    #     MAIL_FROM_ADDRESS: hello@example.com
+    #     MAIL_FROM_NAME: Laravel
+    #
+    #   command: >
+    #     sh -c "
+    #       php artisan migrate --force &&
+    #       php artisan serve --host=0.0.0.0 --port=8000
+    #     "
 
-  db:
-    image: postgres:latest
-    container_name: laravel-db
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: laravel
-      POSTGRES_USER: laravel
-      POSTGRES_PASSWORD: secret
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U laravel -d laravel"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
+    db:
+        image: postgres:latest
+        container_name: laravel-db
+        restart: unless-stopped
+        environment:
+            POSTGRES_DB: laravel
+            POSTGRES_USER: laravel
+            POSTGRES_PASSWORD: secret
+        ports:
+            - "5432:5432"
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U laravel -d laravel"]
+            interval: 5s
+            timeout: 5s
+            retries: 10
 
-  redis:
-    image: redis:alpine
-    container_name: laravel-redis
-    restart: unless-stopped
-    command: redis-server --appendonly yes
-    volumes:
-      - redis_data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 3s
-      retries: 10
+    redis:
+        image: redis:alpine
+        container_name: laravel-redis
+        restart: unless-stopped
+        command: redis-server --appendonly yes
+        volumes:
+            - redis_data:/data
+        healthcheck:
+            test: ["CMD", "redis-cli", "ping"]
+            interval: 5s
+            timeout: 3s
+            retries: 10
 
-  mailpit:
-    image: axllent/mailpit:latest
-    container_name: laravel-mailpit
-    restart: unless-stopped
-    ports:
-      - "8025:8025"
-      - "1025:1025"
+    mailpit:
+        image: axllent/mailpit:latest
+        container_name: laravel-mailpit
+        restart: unless-stopped
+        ports:
+            - "8025:8025"
+            - "1025:1025"
 
+    meilisearch:
+        image: getmeili/meilisearch:latest
+        container_name: laravel-meilisearch
+        restart: unless-stopped
+        environment:
+            MEILI_ENV: development
+        ports:
+            - "7700:7700"
+        volumes:
+            - meilisearch_data:/meili_data
 volumes:
-  postgres_data:
-  redis_data:
+    postgres_data:
+    redis_data:
+    meilisearch_data:
