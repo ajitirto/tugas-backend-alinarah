@@ -137,4 +137,73 @@ Selisih waktu antara endpoint /api/ping dan /api/search sekitar 53 ms. Hasil ini
 Catatan: hasil benchmark dapat dipengaruhi oleh environment pengujian seperti Docker, web server, PHP/Laravel, koneksi ke Meilisearch, dan kondisi mesin saat benchmark dilakukan.
 
 
+➜  tugas-backend-alinarah git:(5-statistuk-cache-redis) ✗ http GET :8000/api/stats/top-authors
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Cache-Control: no-cache, private
+Connection: close
+Content-Type: application/json
+Date: Tue, 15 Sep 2026 08:59:08 GMT
+Host: localhost:8000
+X-Cache: HIT
+X-Powered-By: PHP/8.4.1
+
+[
+    {
+        "total_views": 5390242,
+        "user_id": 126,
+        "username": "averya"
+    },
+    {
+        "total_views": 4469145,
+        "user_id": 150,
+        "username": "stellas"
+    },
+    {
+        "total_views": 4135914,
+        "user_id": 83,
+        "username": "dylanw"
+    }
+]
+
+
+
+
+http GET :8000/api/stats/top-tags   
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Cache-Control: no-cache, private
+Connection: close
+Content-Type: application/json
+Date: Tue, 15 Sep 2026 09:00:05 GMT
+Host: localhost:8000
+X-Cache: HIT
+X-Powered-By: PHP/8.4.1
+
+[
+    {
+        "count": 22456,
+        "tag": "history"
+    },
+    {
+        "count": 19248,
+        "tag": "english"
+    },
+    {
+        "count": 18847,
+        "tag": "american"
+    },
+    {
+        "count": 18847,
+        "tag": "classic"
+    },
+    {
+        "count": 17644,
+        "tag": "love"
+    }
+]
+
+
+
+
 

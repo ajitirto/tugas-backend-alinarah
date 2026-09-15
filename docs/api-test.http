@@ -133,3 +133,20 @@ http POST :8000/api/search?q=history
 ### ---------------------------------------------------------
 http POST  :8000/api/search?q=histroy
 
+
+
+### Top Tags - first request
+GET http://localhost/api/stats/top-tags
+Accept: application/json
+
+### Top Tags - cached request
+GET http://localhost/api/stats/top-tags
+Accept: application/json
+
+### Top Authors - first request
+GET http://localhost/api/stats/top-authors
+Accept: application/json
+
+### Top Authors - cached request
+GET http://localhost/api/stats/top-authors
+Accept: application/json
