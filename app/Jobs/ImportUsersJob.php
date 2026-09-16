@@ -12,6 +12,9 @@ class ImportUsersJob implements ShouldQueue
     use Batchable;
     use Queueable;
 
+    /**
+     * @param  list<array<string, mixed>>  $users
+     */
     public function __construct(public array $users)
     {
         //

@@ -15,6 +15,9 @@ class ImportPostsJob implements ShouldQueue
     /**
      * Create a new job instance.
      */
+    /**
+     * @param  list<array<string, mixed>>  $posts
+     */
     public function __construct(public array $posts)
     {
         //
@@ -28,7 +31,7 @@ class ImportPostsJob implements ShouldQueue
         $now = now();
 
         $data = collect($this->posts)
-            ->map(fn($post) => [
+            ->map(fn ($post) => [
                 'id' => $post['id'],
                 'user_id' => $post['userId'],
                 'title' => $post['title'],

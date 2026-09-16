@@ -2,12 +2,18 @@
 
 namespace App\Models;
 
+use Database\Factories\PostFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Notifications\Notifiable;
 use Laravel\Scout\Searchable;
 
 class Post extends Model
 {
-    use Searchable;
+    /** @use HasFactory<PostFactory> */
+    use HasFactory, Notifiable, Searchable;
 
     protected $fillable = [
         'id',
@@ -23,6 +29,9 @@ class Post extends Model
         'tags' => 'array',
     ];
 
+    /**
+     * @return array{id: int, title: string, body: string}
+     */
     public function toSearchableArray(): array
     {
         return [
@@ -32,12 +41,18 @@ class Post extends Model
         ];
     }
 
-    public function user()
+    /**
+     * @return BelongsTo<User, $this>
+     */
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    public function comments()
+    /**
+     * @return HasMany<Comment, $this>
+     */
+    public function comments(): HasMany
     {
         return $this->hasMany(Comment::class);
     }

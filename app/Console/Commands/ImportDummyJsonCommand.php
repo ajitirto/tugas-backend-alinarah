@@ -30,9 +30,9 @@ class ImportDummyJsonCommand extends Command
         $posts = $service->getPosts();
         $comments = $service->getComments();
 
-        $this->info('Users: ' . count($users));
-        $this->info('Posts: ' . count($posts));
-        $this->info('Comments: ' . count($comments));
+        $this->info('Users: '.count($users));
+        $this->info('Posts: '.count($posts));
+        $this->info('Comments: '.count($comments));
 
         /*
          * ============================================================
@@ -108,6 +108,8 @@ class ImportDummyJsonCommand extends Command
 
     /**
      * Dispatch jobs dalam batch.
+     *
+     * @param  list<array<string, mixed>>  $data
      */
     private function dispatchBatch(
         array $data,
@@ -124,12 +126,6 @@ class ImportDummyJsonCommand extends Command
 
         foreach (array_chunk($data, self::CHUNK_SIZE) as $chunk) {
             $jobs[] = new $jobClass($chunk);
-        }
-
-        if (empty($jobs)) {
-            $this->error("No jobs created for {$name}.");
-
-            return null;
         }
 
         try {
@@ -200,8 +196,8 @@ class ImportDummyJsonCommand extends Command
 
                 $this->error(
                     'Batch progress timeout after '
-                    . self::PROGRESS_TIMEOUT
-                    . ' seconds.'
+                    .self::PROGRESS_TIMEOUT
+                    .' seconds.'
                 );
 
                 $this->error(

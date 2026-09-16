@@ -6,6 +6,9 @@ use Illuminate\Support\Facades\Http;
 
 class DummyJsonService
 {
+    /**
+     * @return list<array<string, mixed>>
+     */
     public function getPosts(): array
     {
         return Http::get(
@@ -14,6 +17,9 @@ class DummyJsonService
         )->throw()->json('posts');
     }
 
+    /**
+     * @return list<array<string, mixed>>
+     */
     public function getUsers(): array
     {
         return Http::get(
@@ -22,6 +28,9 @@ class DummyJsonService
         )->throw()->json('users');
     }
 
+    /**
+     * @return list<array<string, mixed>>
+     */
     public function getComments(): array
     {
         return Http::get(

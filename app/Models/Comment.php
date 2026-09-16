@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Comment extends Model
 {
@@ -14,12 +15,18 @@ class Comment extends Model
         'likes',
     ];
 
-    public function post()
+    /**
+     * @return BelongsTo<Post, $this>
+     */
+    public function post(): BelongsTo
     {
         return $this->belongsTo(Post::class);
     }
 
-    public function user()
+    /**
+     * @return BelongsTo<User, $this>
+     */
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }

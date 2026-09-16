@@ -15,6 +15,9 @@ class ImportCommentsJob implements ShouldQueue
     /**
      * Create a new job instance.
      */
+    /**
+     * @param  list<array<string, mixed>>  $comments
+     */
     public function __construct(public array $comments)
     {
         //
