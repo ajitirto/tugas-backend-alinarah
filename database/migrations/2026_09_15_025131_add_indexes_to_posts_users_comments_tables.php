@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -12,7 +13,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('posts', function (Blueprint $table) {
-            $table->index(['tags', 'views']);
+            if (DB::connection()->getDriverName() === 'pgsql') {
+                $table->index(['tags', 'views']);
+            } else {
+                $table->index('views');
+            }
+
             $table->index('user_id');
         });
 
@@ -26,7 +32,12 @@ return new class extends Migration
     {
 
         Schema::table('posts', function (Blueprint $table) {
-            $table->dropIndex(['tags', 'views']);
+            if (DB::connection()->getDriverName() === 'pgsql') {
+                $table->dropIndex(['tags', 'views']);
+            } else {
+                $table->dropIndex(['views']);
+            }
+
             $table->dropIndex(['user_id']);
         });
 
