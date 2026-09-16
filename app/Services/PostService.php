@@ -2,15 +2,18 @@
 
 namespace App\Services;
 
-use App\Repositories\PostRepository;
+use App\Events\PostCreated;
 use App\Models\Post;
+use App\Repositories\PostRepository;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Cache;
 
 class PostService
 {
     private const TOP_TAGS_KEY = 'stats:heron:top-tags';
+
     private const TOP_AUTHORS_KEY = 'stats:heron:top-authors';
+
     public function __construct(
         private PostRepository $postRepository
     ) {}
@@ -57,9 +60,16 @@ class PostService
             'likes' => 0,
         ]);
 
+        event(new PostCreated($post));
+
         Cache::forget(self::TOP_TAGS_KEY);
         Cache::forget(self::TOP_AUTHORS_KEY);
 
         return $post;
+    }
+
+    public function like(Post $post): int
+    {
+        return $this->postRepository->incrementLikes($post);
     }
 }

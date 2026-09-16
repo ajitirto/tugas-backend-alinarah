@@ -68,4 +68,11 @@ class PostRepository
     {
         return Post::create($data);
     }
+
+    public function incrementLikes(Post $post): int
+    {
+        $post->increment('likes');
+
+        return (int) $post->fresh()->likes;
+    }
 }
