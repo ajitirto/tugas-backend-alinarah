@@ -122,7 +122,7 @@ services:
         command: php artisan queue:work redis --verbose --tries=3
 
     db:
-        image: postgres:latest
+        image: postgres:17
         container_name: laravel-db
         restart: unless-stopped
         environment:
