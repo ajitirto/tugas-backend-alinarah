@@ -150,7 +150,7 @@ jobs:
 
           sed -i "s/^APP_ENV=.*/APP_ENV=local/" .env
           sed -i "s/^APP_DEBUG=.*/APP_DEBUG=true/" .env
-          sed -i "s/^APP_KEY=.*/APP_KEY=$(openssl rand -base64 32 | tr -d '\\n')/" .env
+          sed -i "s|^APP_KEY=.*|APP_KEY=$(openssl rand -base64 32 | tr -d '\\n')|" .env
 
           sed -i "s/^DB_CONNECTION=.*/DB_CONNECTION=pgsql/" .env
           sed -i "s/^DB_HOST=.*/DB_HOST=db/" .env
@@ -161,6 +161,15 @@ jobs:
 
           sed -i "s/^REDIS_HOST=.*/REDIS_HOST=redis/" .env
           sed -i "s/^REDIS_PORT=.*/REDIS_PORT=6379/" .env
+
+          # Scout/Meilisearch: php -S subprocess does NOT inherit the
+          # container environment (ServeCommand whitelists env vars when
+          # a .env file exists), so the web server reads these from .env.
+          # .env.example has no SCOUT_* keys, hence the append below.
+          [[ -n "$(grep -E '^SCOUT_DRIVER=' .env)" ]] || echo 'SCOUT_DRIVER=meilisearch' >> .env
+          [[ -n "$(grep -E '^SCOUT_QUEUE=' .env)" ]] || echo 'SCOUT_QUEUE=true' >> .env
+          [[ -n "$(grep -E '^MEILISEARCH_HOST=' .env)" ]] || echo 'MEILISEARCH_HOST=http://meilisearch:7700' >> .env
+          [[ -n "$(grep -E '^MEILISEARCH_KEY=' .env)" ]] || echo 'MEILISEARCH_KEY=masterKey' >> .env
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
