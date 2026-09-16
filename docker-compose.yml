@@ -17,6 +17,8 @@ services:
                 condition: service_healthy
             mailpit:
                 condition: service_started
+            meilisearch:
+                condition: service_started
         environment:
             APP_ENV: local
             APP_DEBUG: "true"
