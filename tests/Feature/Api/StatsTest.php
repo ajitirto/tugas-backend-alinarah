@@ -5,6 +5,7 @@ namespace Tests\Feature\Api;
 use App\Models\Post;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
@@ -92,6 +93,11 @@ class StatsTest extends TestCase
     public function test_stats_cache_is_invalidated_after_post_creation(): void
     {
         Queue::fake();
+
+        // This test is about cache invalidation, not throttling. Disable the
+        // create-post rate limiter so it cannot be tripped by earlier tests
+        // sharing the same process/cache in CI.
+        $this->withoutMiddleware(ThrottleRequests::class);
 
         Cache::put('stats:heron:top-tags', [
             ['tag' => 'stale', 'count' => 99],

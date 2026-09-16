@@ -104,6 +104,11 @@ class PostStoreTest extends TestCase
     {
         Queue::fake();
 
+        // Use a dedicated client IP so the limiter quota is fresh and the
+        // test stays deterministic when other tests share the same process
+        // and a persistent cache (e.g. Redis in CI).
+        $this->withServerVariables(['REMOTE_ADDR' => '192.0.2.55']);
+
         $user = User::factory()->create();
 
         for ($i = 1; $i <= 10; $i++) {
