@@ -4,11 +4,12 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Post;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class SearchController extends Controller
 {
-    public function __invoke(Request $request)
+    public function __invoke(Request $request): JsonResponse
     {
         $q = $request->string('q')->trim();
 
@@ -20,11 +21,7 @@ class SearchController extends Controller
 
         $posts = Post::search($q)
             ->take(20)
-            ->get([
-                'id',
-                'title',
-                'body',
-            ]);
+            ->get();
 
         return response()->json([
             'data' => $posts,
