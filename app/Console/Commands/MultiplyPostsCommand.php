@@ -43,7 +43,7 @@ class MultiplyPostsCommand extends Command
         $bar->start();
 
         foreach (range(1, $jumlah) as $copy) {
-            $data = $posts->map(fn($post) => [
+            $data = $posts->map(fn ($post) => [
                 'user_id' => $post->user_id,
                 'title' => $post->title,
                 'body' => $post->body,
