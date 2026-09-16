@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StorePostRequest;
+use App\Models\Post;
 use App\Models\User;
 use App\Services\PostService;
 use Illuminate\Http\JsonResponse;
@@ -51,17 +52,17 @@ class PostController extends Controller
                 'total' => $posts->total(),
             ]);
 
-            $data = $posts->map(fn($post) => [
+            $data = $posts->through(fn (Post $post) => [
                 'id' => $post->id,
                 'title' => $post->title,
                 'tags' => $post->tags ?? [],
                 'views' => $post->views,
                 'likes' => $post->likes,
                 'user_id' => $post->user_id,
-            ]);
+            ])->items();
 
             Log::info('PostController@index response mapping success', [
-                'count' => $data->count(),
+                'count' => count($data),
             ]);
 
             return response()->json([
@@ -110,7 +111,7 @@ class PostController extends Controller
                 ],
 
                 'comments' => $post->comments->map(
-                    fn($comment) => [
+                    fn ($comment) => [
                         'id' => $comment->id,
                         'body' => $comment->body,
                         'user' => [
@@ -149,15 +150,17 @@ class PostController extends Controller
             perPage: $perPage
         );
 
+        $data = $posts->through(fn (Post $post) => [
+            'id' => $post->id,
+            'title' => $post->title,
+            'tags' => $post->tags ?? [],
+            'views' => $post->views,
+            'likes' => $post->likes,
+            'user_id' => $post->user_id,
+        ])->items();
+
         return response()->json([
-            'data' => $posts->map(fn($post) => [
-                'id' => $post->id,
-                'title' => $post->title,
-                'tags' => $post->tags ?? [],
-                'views' => $post->views,
-                'likes' => $post->likes,
-                'user_id' => $post->user_id,
-            ]),
+            'data' => $data,
             'meta' => [
                 'page' => $posts->currentPage(),
                 'per_page' => $posts->perPage(),

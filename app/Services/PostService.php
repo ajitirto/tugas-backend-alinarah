@@ -5,7 +5,7 @@ namespace App\Services;
 use App\Events\PostCreated;
 use App\Models\Post;
 use App\Repositories\PostRepository;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Cache;
 
 class PostService
@@ -18,6 +18,9 @@ class PostService
         private PostRepository $postRepository
     ) {}
 
+    /**
+     * @return LengthAwarePaginator<int, Post>
+     */
     public function getPosts(
         int $page,
         int $perPage,
@@ -37,6 +40,9 @@ class PostService
         return $this->postRepository->findById($id);
     }
 
+    /**
+     * @return LengthAwarePaginator<int, Post>
+     */
     public function getUserPosts(
         int $userId,
         int $page,
@@ -49,6 +55,9 @@ class PostService
         );
     }
 
+    /**
+     * @param  array<string, mixed>  $data
+     */
     public function createPost(array $data): Post
     {
         $post = $this->postRepository->create([

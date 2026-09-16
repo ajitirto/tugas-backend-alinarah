@@ -3,10 +3,13 @@
 namespace App\Repositories;
 
 use App\Models\Post;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class PostRepository
 {
+    /**
+     * @return LengthAwarePaginator<int, Post>
+     */
     public function getPosts(
         int $page,
         int $perPage,
@@ -53,6 +56,9 @@ class PostRepository
             ->find($id);
     }
 
+    /**
+     * @return LengthAwarePaginator<int, Post>
+     */
     public function getPostsByUser(
         int $userId,
         int $page,
@@ -64,6 +70,9 @@ class PostRepository
             ->paginate($perPage, ['*'], 'page', $page);
     }
 
+    /**
+     * @param  array<string, mixed>  $data
+     */
     public function create(array $data): Post
     {
         return Post::create($data);
